@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Household builder</title>
+        <style>
+            .debug {
+                font-family: monospace;
+                border: 1px solid black;
+                padding: 10px;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Household builder</h1>
+        <div class="builder">
+            <ol class="household"></ol>
+            <form>
+                <div>
+                    <label>Age
+                        <input type="text" name="age">
+                    </label>
+                </div>
+                <div>
+                    <label>Relationship
+                        <select name="rel">
+                            <option value="">---</option>
+                            <option value="self">Self</option>
+                            <option value="spouse">Spouse</option>
+                            <option value="child">Child</option>
+                            <option value="parent">Parent</option>
+                            <option value="grandparent">Grandparent</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <label>Smoker?
+                        <input type="checkbox" name="smoker">
+                    </label>
+                </div>
+                <div>
+                    <button class="add">add</button>
+                </div>
+                <div>
+                    <button type="submit">submit</button>
+                </div>
+            </form>
+        </div>
+        <pre class="debug"></pre>
+        <script>
+
+
+    // create output div
+            var debugPre = document.getElementsByTagName("pre")[0];
+ 
+            var outputDiv = document.createElement("div");
+            outputDiv.setAttribute("id", "output");
+            debugPre.parentElement.appendChild(outputDiv);
+
+            var outputTable = document.createElement("table");
+
+            outputDiv.appendChild(outputTable);
+            var tableHead = document.createElement("thead");
+            var titleArr = ["", "Age", "Relationship", "Smoker"];
+            var titleRow = createRow(titleArr);
+            tableHead.appendChild(titleRow);
+            outputTable.appendChild(tableHead);
+
+            var tableBody = document.createElement("tbody");
+            outputTable.appendChild(tableBody);
+
+            var tableFoot = document.createElement("tfoot");
+            var deleteRow = document.createElement("tr");
+            var deleteCell = document.createElement("td");
+            deleteCell.setAttribute("colspan", "2");
+            deleteRow.appendChild(deleteCell);
+            var deleteBtn = document.createElement("input");
+            deleteBtn.setAttribute("type", "button");
+            deleteBtn.value = "Delete";
+            deleteBtn.addEventListener("click", function() {
+                deleteEntries();
+            });
+            deleteCell.appendChild(deleteBtn);
+            tableFoot.appendChild(deleteRow);
+            outputTable.appendChild(tableFoot);
+
+            function createRow(textArr) {
+                var row = document.createElement("tr");
+                for (i in textArr) {
+            	      var col = document.createElement("td");
+		                col.innerHTML = textArr[i];
+                    row.appendChild(col);
+                }
+                return row;
+            }
+            
+    // add functionality to buttons
+            var addBtn = document.getElementsByTagName("button")[0];
+            addBtn.addEventListener("click", function(){
+                checkInput();
+            });
+
+            var submitBtn = document.getElementsByTagName("button")[1];
+            submitBtn.addEventListener("click", function(){
+                processSubmit();
+            });
+
+    // stop all browser form submissions
+            var submitNow = false;
+  
+            function checkSubmit() {
+                return submitNow;
+            }
+            document.getElementsByTagName("form")[0].setAttribute("onsubmit", "return checkSubmit()");
+
+    // unique item id in case of entries with identical parameters, ie twins
+            var id = 1;
+ 
+    // Process adds and deletes
+            function checkInput() {
+                var ageValue = document.getElementsByName("age")[0].value;
+                var relInput = document.getElementsByName("rel");
+                var relValue = relInput[0].options[relInput[0].selectedIndex].text;
+                var errorStr = "Please enter";
+                if(typeof ageValue === "undefined" || ageValue < 1){
+                    errorStr += " a valid age";
+                }
+                if(relValue == "---"){
+                   if(errorStr.length > 13) {
+                       errorStr += " and";
+                   }
+                   errorStr += " a valid relationship"
+		            }
+                errorStr += ".";
+                if(errorStr.length > 14) {
+                    alert(errorStr);
+                } else {
+                    var smokerBox = document.getElementsByName("smoker");
+                    var smokerBool = smokerBox[0].checked? true: false;
+                    addEntry(ageValue, relValue, smokerBool);
+                    resetInput();
+                }
+            }
+           function addEntry(age,relationship,smoker) {
+                var newRow = document.createElement("tr");
+                var deleteBoxStr = "<input type=\"checkbox\" value=\"" + id + "\">";
+                var smokerStr = smoker?"Yes":"No";
+                var inputArr = [deleteBoxStr, age, relationship, smokerStr];
+                var newRow = createRow(inputArr);
+                tableBody.appendChild(newRow);
+		            id++;
+            }
+            function resetInput() {
+                document.getElementsByName("age")[0].value = "";
+                document.getElementsByName("rel")[0].selectedIndex = 0;
+                document.getElementsByName("smoker")[0].checked = false;
+            }
+            function deleteEntries() {
+               for (var i=0; i<tableBody.rows.length; i++) {
+                  var currentRow = tableBody.rows[i];
+                  var checkBox = currentRow.cells[0].childNodes[0];
+                  if(checkBox.checked == true) {
+                      currentRow.parentElement.removeChild(currentRow);
+                  }    
+               }
+            }
+
+    // Process submit request           
+            function Entry(id, age, rel, smoker) {
+               this.id = id;
+               this.age = age;
+               this.rel = rel;
+               this.smoker = smoker;
+            }
+  
+            function processSubmit() {
+                var entry;
+                data = [];
+                for (var i=0; i<tableBody.rows.length; i++) {
+                  var currentRow = tableBody.rows[i];
+                  var id = currentRow.cells[0].childNodes[0].value;
+                  var age = currentRow.cells[1].innerHTML;
+                  var rel = currentRow.cells[2].innerHTML;
+                  var smoker = currentRow.cells[3].innerHTML;
+                  entry = new Entry(id, age, rel, smoker);
+                  data.push(entry);
+                }
+                var displayStr = JSON.stringify(data);
+		            debugPre.innerHTML = displayStr; 
+                displayDebug();
+     //         sendData(displayStr);  //For future development
+            }
+
+            function displayDebug(){
+                document.styleSheets[0].cssRules[0].style.display = "block";
+            }
+    /* for future developement - Fire and forget AJAX call
+            function sendData(data) {
+                var xhr = new XMLHttpRequest();
+                var url = "www.homeDomainName.com/dataAPI";  // must be same origin
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("Content-type", "application/json");
+                xhr.send(data);
+            }
+   */
+        </script>
+    </body>
+</html>
