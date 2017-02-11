@@ -1,0 +1,4 @@
+Comments
+The data validation check I added on the age and relationship variables is overkill for the data in your index.html because the data is only available to javascript within the browser page, however this data could be propagated elsewhere in a single page application.  Further, this code also provides graceful handling of invalid data.
+I added an additional ID field that was not specified by the requirements.  This will be needed to discriminate between entries with identical data, twins for example.
+The displayDebug function was written specifically for the index.html file as written.  This function can be expanded to search all stylesheets and only modify the debug class if external stylesheets were added.
