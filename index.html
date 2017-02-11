@@ -120,19 +120,22 @@
  
     // Process adds and deletes
             function checkInput() {
-                var ageValue = document.getElementsByName("age")[0].value;
-                var relInput = document.getElementsByName("rel");
-                var relValue = relInput[0].options[relInput[0].selectedIndex].text;
                 var errorStr = "Please enter";
-                if(typeof ageValue === "undefined" || ageValue < 1){
+		    
+                var ageValue = document.getElementsByName("age")[0].value;
+                if(typeof ageValue !== "number" || ageValue < 1 || ageValue > 150) {
                     errorStr += " a valid age";
-                }
-                if(relValue == "---"){
+                }		    
+		    
+                var relInput = document.getElementsByName("rel");
+		var relValue = relInput[0].options[relInput[0].selectedIndex].text;
+		var validRelArr = ["Self", "Spouse", "Child", "Parent", "Grandparent", "Other"];
+                if(validRelArr.indexOf(relValue) == -1){
                    if(errorStr.length > 13) {
                        errorStr += " and";
                    }
                    errorStr += " a valid relationship"
-		            }
+		}
                 errorStr += ".";
                 if(errorStr.length > 14) {
                     alert(errorStr);
